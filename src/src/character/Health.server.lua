@@ -1,0 +1,2 @@
+-- Intentionally empty: overrides Roblox's default health regen script
+-- so HealthService (bleeding + controlled regen) owns all healing.

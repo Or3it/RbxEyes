@@ -1,0 +1,15 @@
+{
+  "name": "NoLander",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": { "$path": "src/server" },
+    "ServerStorage": { "$path": "src/storage" },
+    "ReplicatedStorage": { "$path": "src/shared" },
+    "StarterGui": { "$path": "src/gui" },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": { "$path": "src/client" },
+      "StarterCharacterScripts": { "$path": "src/character" }
+    }
+  }
+}
