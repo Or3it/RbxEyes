@@ -1,5 +1,11 @@
 --!strict
--- NexusObserver — streams game state to the local bridge.
+-- NexusObserver (PA-T02) — streams game state to the local bridge.
+-- Lives IN the game (ServerScriptService), so it runs during playtest where
+-- the MCP plugin's separate DataModel can't reach.
+-- Setup: enable HttpService (Game Settings > Security > Allow HTTP Requests),
+-- tag observables with CollectionService tag "observe".
+-- Config via attributes on this Script: Enabled(bool), Hz(number), BridgeUrl(string).
+
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
@@ -11,7 +17,11 @@ local HZ = tonumber(script:GetAttribute("Hz")) or 3
 local TAG = "observe"
 local MAX_EVENTS_PER_TICK = 40
 
+local Stats = game:GetService("Stats")
 local session = HttpService:GenerateGUID(false)
+local tickCount = 0
+local lastInstances = 0
+local hbAccum, hbFrames = 0, 0
 local clock0 = os.clock()
 local pendingEvents: { { [string]: any } } = {}
 local touchDebounce: { [string]: number } = {}
@@ -85,11 +95,25 @@ local function snapshot(): { [string]: any }
 	end
 	local events = pendingEvents
 	pendingEvents = {}
+	tickCount += 1
+	if tickCount % 5 == 1 then
+		lastInstances = #game:GetDescendants()
+	end
+	local hbFps = hbFrames > 0 and (hbFrames / math.max(hbAccum, 1e-6)) or 0
+	hbAccum, hbFrames = 0, 0
+	local memMb = 0
+	pcall(function() memMb = Stats:GetTotalMemoryUsageMb() end)
 	return {
 		t = now(),
 		session = session,
 		entities = ents,
 		physics = { fps = workspace:GetRealPhysicsFPS() },
+		perf = {
+			fps = workspace:GetRealPhysicsFPS(),
+			heartbeat_fps = math.floor(hbFps * 10 + 0.5) / 10,
+			memory_mb = math.floor(memMb * 10 + 0.5) / 10,
+			instances = lastInstances,
+		},
 		events = events,
 	}
 end
@@ -97,6 +121,8 @@ end
 local acc = 0
 RunService.Heartbeat:Connect(function(dt: number)
 	if script:GetAttribute("Enabled") == false then return end
+	hbAccum += dt
+	hbFrames += 1
 	acc += dt
 	if acc < 1 / HZ then return end
 	acc = 0
@@ -108,6 +134,7 @@ RunService.Heartbeat:Connect(function(dt: number)
 	if ok then
 		consecutiveFails = 0
 	else
+		-- bridge down: back off, never break the game
 		consecutiveFails += 1
 		skipUntil = now() + math.min(30, 2 ^ consecutiveFails)
 	end
