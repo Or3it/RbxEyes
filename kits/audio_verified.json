@@ -1,0 +1,15 @@
+{
+  "verified_2026-07-13": {
+    "wind_ambient": {
+      "asset_id": "rbxassetid://8355232958",
+      "source": "Official Roblox Creator Store - Wind Ambient (Sound Effect)",
+      "url": "https://create.roblox.com/store/asset/8355232958/Wind-Ambient-Sound-Effect",
+      "verified_live": "IsLoaded=true, TimeLength=44.76s, TimePosition confirmed advancing in real playtest",
+      "usage": "NoLander exterior/attic zones - matches horror_night preset"
+    }
+  },
+  "failed_verification": {
+    "9047710970": "IsLoaded stayed false, TimeLength=0 after 3s+ wait - do not reuse, likely dead/private asset"
+  },
+  "next_needed": ["heartbeat stinger", "locker creak", "distant flight rumble - per POLISH.md shopping list"]
+}
