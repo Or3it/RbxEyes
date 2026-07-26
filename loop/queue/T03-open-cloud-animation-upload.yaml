@@ -1,0 +1,14 @@
+id: T03
+goal: Determine whether Open Cloud can upload animations programmatically, removing the GUI bottleneck.
+status: open
+acceptance:
+  - "a definitive yes/no backed by an actual API response, not documentation guesswork"
+  - "if yes: an animation asset ID that loads and plays in Studio"
+  - "if no: the exact error recorded in docs/EXCHANGE.md so nobody retries blind"
+notes: |
+  This is the single highest-leverage unblock for autonomy. If Open Cloud
+  accepts animation uploads, the entire Blender->Studio animation loop
+  becomes scriptable and 'one-shot animated tools' becomes real.
+  RBX_OPEN_CLOUD_KEY is already loading correctly (verified 2026-07-13).
+  Bridge endpoint /upload/asset exists and reaches the API (confirmed by
+  it returning a file-not-found error rather than a key error).

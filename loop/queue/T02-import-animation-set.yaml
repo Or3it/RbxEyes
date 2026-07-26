@@ -1,0 +1,17 @@
+id: T02
+goal: Import the six-animation set + skinned character into Studio and verify each plays on a rig.
+status: open
+depends_on: exchange folder populated (done 2026-07-13)
+acceptance:
+  - "each of the 6 animations appears in ServerStorage.RBX_ANIMSAVES after import"
+  - "each plays on a live rig with joint oscillation confirmed numerically (not IsPlaying alone)"
+  - "skinned character imports via 3D Importer and deforms when an animation plays"
+notes: |
+  Files ready in ~/Documents/rbx-eyes/exchange/:
+    r15_idle / walk / sprint / crouch_walk / cower / collapse .fbx
+    nolander_character_skinned.fbx
+  GUI-BOUND: Animation Editor import and 3D Importer have no scripting API.
+  Path: Avatar > Clip Editor > select rig > "..." > Import > From File.
+  Rest Pose Source = "Animation Editor Rig" (verified correct 2026-07-13;
+  "Imported Rig" risks Blender/Roblox proportion mismatch).
+  Alternative worth testing: Open Cloud /upload/asset assetType=Animation.
