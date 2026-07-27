@@ -114,8 +114,37 @@ Clean rest also confirms the X flip: LeftUpperArm sits at -0.90, RightUpperArm a
     output — deltas of 3-12 deg that read like a conversion bug rather than a typo.
     `#row == 2 + 4*#bones` catches it instantly.
 
+## Skinned character — works, with a trap
+
+`nolander_character_skinned.fbx` uploaded as a **Model** via the same Assets API
+(content type `model/fbx`) -> asset **139055569803844**, Approved. Skinning survived
+with no 3D Importer involvement: one MeshPart plus all 16 Bones, correct R15 names and
+parentage. The uploaded animations drive its Bones directly through an
+AnimationController/Animator.
+
+### The trap: hierarchy is per-rig and mismatches are silent
+
+An animation carries its pose tree. Play an avatar-hierarchy clip on the custom
+character and the legs animate perfectly while **both arms and the head sit at exactly
+0.00 deg** — no error, no warning, track playing, time advancing. It reads like a bad
+animation. It is a rig mismatch.
+
+Two sets are therefore maintained in `src/storage/AnimationIds.lua`:
+`Avatar` (clavicle chain, stock R15 players) and `Character` (16-bone, NoLanderBody).
+`tools/anim_upload.py` takes an explicit `hier=` argument;
+`hierarchy_from_armature()` derives the character tree from the Blender rig.
+
+Character set verified on NoLanderBody, worst delta vs Blender source: idle 0.01,
+walk 0.17, crouch_walk 0.05, cower 0.43, collapse 0.00, sprint 2.69.
+
+### Verification note
+
+Peak-by-sampling needs several full loops. A single pass of 45 samples reported
+LeftLowerLeg at 3.78 deg against a source of 28 — the left knee only bends in the back
+half of the walk cycle and the window missed it. Sampling 300 frames over ~4 loops gave
+27.85. Always sample multiple loops before believing an asymmetry.
+
 ## Still open
 
-- Skinned character (`nolander_character_skinned.fbx`) — separate problem. It is a
-  Model; Open Cloud takes FBX for Models directly, but whether skin weights survive
-  without the 3D Importer's settings panel is untested.
+- Sprint at step=1 if the 2.69 deg decimation gap matters.
+- Wiring the character + Character animation set into an actual playable NoLander.

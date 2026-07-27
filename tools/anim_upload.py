@@ -148,13 +148,31 @@ def upload(path, display_name, description=""):
             return o.get("response", {}).get("assetId"), o
     return None, {"error": "timed out"}
 
-def upload_action(action_name, step=2, loop=True):
+def hierarchy_from_armature(name=ARMATURE):
+    """Derive the pose tree from the Blender rig -- correct for the CUSTOM skinned
+    character (NoLanderBody), whose bones are UpperTorso > LeftUpperArm directly."""
+    h = {}
+    for b in bpy.data.objects[name].data.bones:
+        if b.parent:
+            h.setdefault(b.parent.name, []).append(b.name)
+    return h
+
+# HIER above is the STOCK AVATAR rig (UpperTorso > Spine > Chest > LeftClavicle >
+# LeftUpperArm). The two are NOT interchangeable and mismatches fail silently --
+# an avatar-hierarchy clip on the custom character animates legs perfectly and
+# leaves both arms and the head at exactly 0.00 deg, with no error anywhere.
+AVATAR_HIER = dict(HIER)
+
+def upload_action(action_name, step=2, loop=True, hier=None, suffix=""):
+    global HIER
+    if hier is not None:
+        HIER = hier
     frames = extract(action_name, step)
-    xml = to_rbxmx(frames, action_name, loop)
-    path = os.path.join(OUT_DIR, action_name + ".rbxmx")
+    xml = to_rbxmx(frames, action_name + suffix, loop)
+    path = os.path.join(OUT_DIR, action_name + suffix + ".rbxmx")
     open(path, "w").write(xml)
     print("%s: %d keyframes, %d bytes" % (action_name, len(frames), len(xml)))
-    aid, info = upload(path, action_name)
+    aid, info = upload(path, action_name + suffix)
     print("  assetId:", aid, " moderation:",
           info.get("response", {}).get("moderationResult", {}).get("moderationState"))
     return aid
