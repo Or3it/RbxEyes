@@ -1,4 +1,4 @@
-# Animation Pipeline — GUI bottleneck removed
+# Animation Pipeline — GUI bottleneck removed, end to end
 
 Status: **animation half of T02 is solved without the Animation Editor.**
 Verified live in Studio 2026-07-26 on `workspace.Rig` (R15).
@@ -22,13 +22,29 @@ Implementation: `src/storage/AnimBridge.lua`.
 Sampled values fall just inside source extremes because sampling misses the exact
 interpolation peaks. That is the expected signature of correct playback, not error.
 
-## Hard limit
+## Shipping path — PROVEN
 
-`RegisterKeyframeSequence` IDs are **temporary and Studio-only**. They do not work in
-a published game. For shipping, the same generated `KeyframeSequence` must be
-serialized and uploaded. Open Cloud accepts Animation uploads (since Oct 2025) but
-only from `.rbxm`/`.rbxmx` — never from FBX. Send `.rbxmx` XML with content type
-`model/x-rbxm`; `model/x-rbxmx` returns 400. **This upload path is not yet tested.**
+Hand-generated `.rbxmx` uploads through Open Cloud and produces a working, permanent
+animation asset. Roblox's docs warn that `.rbxmx` edited outside Studio "might not
+upload or function" — for a KeyframeSequence built by `tools/anim_upload.py`, it does
+both.
+
+R15_idle -> asset **136922974979522**, moderation Approved, state Active. Loaded on a
+live rig by real `rbxassetid://`, `GetAnimationClipAsync` returned a 15-keyframe
+KeyframeSequence, and playback measured Waist -2.44..2.46 (source +/-2.49),
+Neck -1.47..1.45 (source -1.47..+1.50), LeftShoulder Z 4.00 exact.
+
+`RegisterKeyframeSequence` remains the fast iteration loop (no upload, no quota,
+instant); Open Cloud is the ship step. Nothing in the pipeline needs a GUI.
+
+Send `.rbxmx` as content type `model/x-rbxm` — `model/x-rbxmx` returns 400.
+
+### API key scope
+The key needs the **Asset** permission, read and write. Without it *every* asset
+endpoint — including read-only `asset-quotas` — returns
+`403 PERMISSION_DENIED: "User not authenticated"`. That message is misleading: the key
+authenticates fine against `/cloud/v2/users/{id}`. If asset calls 403 but user calls
+200, it is scope, not the key.
 
 ## Gotchas found
 
@@ -103,4 +119,3 @@ Clean rest also confirms the X flip: LeftUpperArm sits at -0.90, RightUpperArm a
 - Skinned character (`nolander_character_skinned.fbx`) — separate problem. It is a
   Model; Open Cloud takes FBX for Models directly, but whether skin weights survive
   without the 3D Importer's settings panel is untested.
-- Open Cloud `.rbxmx` animation upload — untested.
