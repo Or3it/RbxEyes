@@ -14,6 +14,11 @@ Config.WALK_SPEED = 16
 Config.JUMP_POWER = 50
 Config.CRAWL_SPEED = 5
 
+-- NoLander custom body
+Config.NOLANDER_SCALE = 3.2       -- 1.571 studs raw mesh * 3.2 = ~5.03 studs
+Config.NOLANDER_WALK_SPEED = 20   -- must be re-applied AFTER Model:ScaleTo,
+                                  -- which multiplies WalkSpeed by the scale
+
 -- Laser (server-side validation)
 Config.SERVER_COOLDOWN = 4.5 -- slightly longer than client 1.5 windup + 3 cooldown
 Config.MIN_WINDUP = 1.3

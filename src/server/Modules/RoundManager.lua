@@ -7,7 +7,19 @@ local RoundManager = {}
 local remotes = nil
 local Ragdoll = nil
 local Health = nil
+local NoLanderChar = nil
 local currentNoLander = nil
+
+-- Swap the NoLander onto the custom skinned body. Survivors stay on the stock
+-- R15 rig -- the S1 body has no Motor6Ds and no per-limb parts, so ragdoll and
+-- hit routing would both fail silently on it.
+local function applyNoLanderBody(player)
+	if not NoLanderChar then return end
+	local ok, err = pcall(function() return NoLanderChar.apply(player) end)
+	if not ok then
+		warn("[RoundManager] NoLander body failed, staying on default rig: " .. tostring(err))
+	end
+end
 
 local function assignRoles()
 	local players = Players:GetPlayers()
@@ -36,6 +48,7 @@ local function assignRoles()
 	released.Value = false
 	released.Parent = noLander
 	print("NoLander is: " .. noLander.Name)
+	applyNoLanderBody(noLander)
 	for _, player in ipairs(players) do
 		if player ~= noLander then
 			local r = Instance.new("StringValue")
@@ -190,10 +203,11 @@ local function waitForPlayers()
 	task.wait(1)
 end
 
-function RoundManager.init(r, ragdollService, healthService)
+function RoundManager.init(r, ragdollService, healthService, noLanderCharacter)
 	remotes = r
 	Ragdoll = ragdollService
 	Health = healthService
+	NoLanderChar = noLanderCharacter
 end
 
 function RoundManager.start()
